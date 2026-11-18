@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tims Rewards – Challenges Demo</title>
+<style>
+  :root{--ck-red:#C8102E;--ck-orange:#8A1C24;--ink:#3B1F1A;--muted:#6e6e73;--bg:#F7F3EE}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+       min-height:100vh;display:flex;align-items:flex-start;justify-content:center;gap:64px;flex-wrap:wrap;
+       background:radial-gradient(circle at 20% 20%,#2b2b2e,#0d0d0f);padding:40px;color:#fff}
+  .phone{position:sticky !important;top:24px}
+  button.wd{background:transparent !important;color:#8a8a8f !important;border:1px solid #d0d0d5 !important;font-size:12px !important;padding:6px 10px !important;margin-top:8px !important;width:auto !important;border-radius:8px !important;cursor:pointer}
+  button.wd:hover{color:#C8102E !important;border-color:#C8102E !important}
+  .pitch{max-width:380px}
+  .pitch h1{font-size:40px;line-height:1.1;margin-bottom:16px}
+  .pitch h1 span{color:var(--ck-orange)}
+  .pitch p{color:#c7c7cc;font-size:17px;line-height:1.5;margin-bottom:20px}
+  .pitch .hint{font-size:13px;color:#8e8e93;border-left:3px solid var(--ck-red);padding-left:12px}
+  .pitch button{margin-top:20px;background:#3a3a3c;color:#fff;border:0;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer}
+  /* iPhone frame */
+  .phone{width:390px;height:844px;border-radius:60px;background:#111;padding:14px;position:relative;
+         box-shadow:0 0 0 2px #3a3a3c,0 40px 80px rgba(0,0,0,.6)}
+  .screen{width:100%;height:100%;border-radius:46px;overflow:hidden;background:var(--bg);color:var(--ink);
+          position:relative;display:flex;flex-direction:column}
+  .island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:20px;z-index:5}
+  .status{height:50px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 30px 6px;font-weight:600;font-size:15px;background:var(--ck-red);color:#fff}
+  .appbar{background:var(--ck-red);color:#fff;padding:10px 20px 18px}
+  .appbar .row{display:flex;justify-content:space-between;align-items:center}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:20px}
+  .logo .k{width:34px;height:34px;border-radius:50%;background:#fff;color:var(--ck-red);display:flex;align-items:center;justify-content:center;font-weight:900}
+  .member{margin-top:14px;background:rgba(255,255,255,.15);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between}
+  .member small{opacity:.85;font-size:12px;display:block}
+  .member b{font-size:20px}
+  .content{flex:1;overflow-y:auto;padding:16px}
+  .section-title{font-size:20px;font-weight:700;margin:4px 0 12px}
+  .card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:16px}
+  .hero{height:120px;background:linear-gradient(135deg,var(--ck-red),var(--ck-orange));position:relative;color:#fff;padding:16px}
+  .hero .icons{position:absolute;right:16px;bottom:10px;font-size:40px}
+  .badge{display:inline-block;background:rgba(0,0,0,.25);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .hero h2{font-size:22px;margin-top:10px}
+  .body{padding:14px 16px 16px}
+  .body p{color:var(--muted);font-size:14px;line-height:1.4}
+  .progress{margin:14px 0 6px;height:10px;border-radius:6px;background:#e5e5ea;overflow:hidden}
+  .progress div{height:100%;background:linear-gradient(90deg,var(--ck-orange),var(--ck-red));transition:width .4s}
+  .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+  .tasks{margin-top:12px;list-style:none}
+  .tasks li{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #f0f0f0;cursor:pointer}
+  .chk{width:26px;height:26px;border-radius:50%;border:2px solid #c7c7cc;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;transition:.2s}
+  .done .chk{background:#34c759;border-color:#34c759}
+  .tasks b{font-size:15px;display:block}
+  .tasks span{font-size:12px;color:var(--muted)}
+  .reward{margin-top:12px;background:#FBEDEE;border-radius:12px;padding:10px 12px;font-size:13px;display:flex;gap:8px;align-items:center}
+  .complete{background:#e8f8ec}
+  .tabbar{height:84px;background:#fff;border-top:1px solid #e5e5ea;display:flex;justify-content:space-around;padding-top:10px;font-size:10px;color:var(--muted)}
+  .tabbar div{text-align:center}
+  .tabbar .on{color:var(--ck-red);font-weight:600}
+  .tabbar i{font-style:normal;font-size:22px;display:block}
+  .toast{position:absolute;left:16px;right:16px;top:60px;background:rgba(30,30,30,.92);color:#fff;border-radius:16px;padding:12px 14px;font-size:13px;
+         transform:translateY(-150%);transition:transform .4s;z-index:6;display:flex;gap:10px;align-items:center}
+  .toast.show{transform:translateY(0)}
+  .lc{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:16px}
+  .lc img{width:100%;display:block;max-height:180px;object-fit:cover}
+  .lc .b{padding:14px 16px}.lc h3{margin:0 0 6px;font-size:17px}.lc p{margin:0 0 12px;font-size:14px;color:#444}
+  .lc button{background:#C8102E;color:#fff;border:0;border-radius:22px;padding:10px 18px;font-weight:700;font-size:14px;margin-right:8px;cursor:pointer}
+  .lc button.joined{background:#2e7d32}
+  .pg{border-top:1px solid #eee;margin-top:6px;padding-top:12px}.pg .row{display:flex;justify-content:space-between;font-size:13px;color:#444;margin:10px 0 4px}
+  .pg .bar{height:10px;border-radius:6px;background:#eee;border:1px solid #ccc;overflow:hidden}.pg .bar i{display:block;height:100%;background:#C8102E}
+  .pg .sum{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:14px}.pg .sum b{font-size:18px}
+  .live{font-size:11px;color:#2e7d32;font-weight:700;letter-spacing:.04em;margin:0 0 6px}
+  .cp{margin-top:22px;background:#2a2a2c;border:1px solid #3a3a3c;border-radius:16px;padding:16px 18px;max-width:440px}
+  .cp h3{margin:0 0 4px;font-size:15px;color:#fff}.cp .sub{margin:0 0 12px;font-size:12px;color:#aaa}
+  .cp .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#E8B4B8;margin:12px 0 6px;font-weight:700}
+  .cp .btns{display:flex;flex-wrap:wrap;gap:8px}
+  .cp .btns button{background:#3a3a3c;color:#fff;border:1px solid #555;border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+  .cp .btns button:hover{border-color:#C8102E}.cp .btns button.no{color:#bbb;border-style:dashed}
+  .cp .btns button:disabled{opacity:.5;cursor:wait}
+  .cp .st{margin-top:14px;border-top:1px solid #3a3a3c;padding-top:10px;font-size:13px;color:#ddd}
+  .cp .st div{display:flex;justify-content:space-between;margin:4px 0}.cp .ok{color:#6fcf73}.cp .wait{color:#E8B4B8}.cp .bad{color:#ff7b72}
+  .cp .log{margin-top:8px;font-size:12px;color:#999;max-height:90px;overflow:auto}
+  .stp{display:flex;align-items:center;margin:4px 0 6px}.stp .dot{width:30px;height:30px;border-radius:50%;border:2px solid #d8cfc8;color:#8a7a72;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;background:#fff;flex:none}
+  .stp .dot.on{background:#C8102E;border-color:#C8102E;color:#fff}.stp .ln{flex:1;height:6px;background:#e7ded7}.stp .ln.on{background:#C8102E}
+  .stpl{font-weight:700;font-size:15px;color:#3B1F1A;margin-bottom:4px}
+  #hourPick button.on{border-color:#C8102E;background:#4a2a2c}
+</style>
+</head>
+<body>
+
+<div class="pitch">
+  <h1>Every visit counts. <span>Every step celebrated.</span></h1>
+  <p>This is how a Tims Rewards member sees a Journey Optimizer loyalty challenge in the Tims app: live progress, milestones along the way and the reward they're working toward.</p>
+  <div style="margin:0 0 14px">
+    <label for="memberPick" style="display:block;font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Demo as loyalty member</label>
+    <select id="memberPick" style="width:100%;max-width:440px;background:#2a2a2c;color:#fff;border:1px solid #555;border-radius:10px;padding:9px 12px;font-size:14px"></select>
+  </div>
+  <p class="hint">Demo mode: use the control panel to simulate purchases. Rewards (bonus points or a free coffee) are sent to the Tims rewards system the moment a challenge is completed.</p>
+  <div class="demo-actions">
+    <button onclick="resetDemo()" class="da-btn da-reset">↺ Reset</button>
+    <a href="https://justintxadobe.github.io/circlek-demo/rewards.html" target="_blank" class="da-btn da-link">Rewards dashboard ↗</a>
+  </div>
+  <style>
+    .demo-actions{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;width:100%;max-width:440px;margin:0 0 18px}
+    .demo-actions .da-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;height:38px;margin:0;padding:0 12px;border-radius:10px;font-weight:600;font-size:12px;font-family:inherit;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;cursor:pointer;transition:background .15s,color .15s}
+    .demo-actions .da-reset{background:#3a3a3d;color:#fff;border:1px solid #555}
+    .demo-actions .da-reset:hover{background:#4a4a4e}
+    .demo-actions .da-link{background:transparent;color:#E8B4B8;border:1px solid #E8B4B8}
+    .demo-actions .da-link:hover{background:#E8B4B8;color:#1d1d1f}
+    @media (max-width:520px){.demo-actions{grid-template-columns:1fr}}
+  </style>
+  <div class="cp">
+    <h3>Demo control panel</h3>
+    <p class="sub">Simulates a Tims restaurant purchase for this member. Each tap streams a real purchase event to Experience Platform.</p>
+    <div class="grp">Time of purchase</div>
+    <div class="btns" id="hourPick">
+      <button data-h="" class="on" onclick="setHour(this)">Now</button>
+      <button data-h="8" onclick="setHour(this)">8:15 AM</button>
+      <button data-h="14" onclick="setHour(this)">2:30 PM (after 11)</button>
+    </div>
+    <div class="grp">Coffee · Buy 3, get 1 free / National Coffee Day</div>
+    <div class="btns">
+      <button onclick="buy([{sku:'TH-COF-ORG',qty:1}],'Original Blend')">Original Blend</button>
+      <button onclick="buy([{sku:'TH-COF-DD',qty:1}],'Double-Double')">Double-Double</button>
+      <button onclick="buy([{sku:'TH-COF-ICE',qty:1}],'Iced Coffee')">Iced Coffee</button>
+      <button onclick="buy([{sku:'TH-LAT',qty:1}],'Latte')">Latte</button>
+    </div>
+    <div class="grp">Treats &amp; food</div>
+    <div class="btns">
+      <button onclick="buy([{sku:'TH-ICC',qty:1}],'Iced Capp')">Iced Capp</button>
+      <button onclick="buy([{sku:'TH-BKS',qty:1}],'Breakfast Sandwich')">Breakfast Sandwich</button>
+      <button onclick="buy([{sku:'TH-HB',qty:1}],'Hash Brown')">Hash Brown</button>
+      <button onclick="buy([{sku:'TH-TB10',qty:1}],'Timbits 10-pack')">Timbits 10-pack</button>
+      <button onclick="buy([{sku:'TH-DNT',qty:1}],'Donut')">Donut</button>
+      <button onclick="buy([{sku:'TH-WRP',qty:1}],'Wrap')">Wrap</button>
+      <button onclick="buy([{sku:'TH-SOUP',qty:1}],'Soup')">Soup</button>
+    </div>
+    <div class="grp">Combos &amp; edge cases</div>
+    <div class="btns">
+      <button onclick="buy([{sku:'TH-COF-DD',qty:1},{sku:'TH-BKS',qty:1}],'Double-Double + Breakfast Sandwich')">Double-Double + Breakfast Sandwich</button>
+      <button class="no" onclick="buy([{sku:'TH-WTR',qty:1}],'Bottled Water (not eligible)')">Bottled Water (not eligible)</button>
+    </div>
+    <div class="st" id="cpStatus"><div><span>Journey Optimizer status</span><span class="wait">checking…</span></div></div>
+    <div class="log" id="cpLog"></div>
+  </div>
+</div>
+
+<div class="phone">
+  <div class="screen">
+    <div class="island"></div>
+    <div class="toast" id="toast"><span style="font-size:22px">🎉</span><div id="toastText"></div></div>
+    <div class="status"><span id="clock">9:41</span><span>●●●● 5G ▮</span></div>
+    <div class="appbar">
+      <div class="row">
+        <div class="logo"><img src="th-logo.png" alt="Tim Hortons" style="height:38px;display:block;border-radius:9px" onerror="this.outerHTML='<b>Tims</b>'"><span style="font-size:17px">Tims Rewards</span></div>
+        <div style="font-size:22px">🔔</div>
+      </div>
+      <div class="member">
+        <div><small>Member</small><b id="memberName">Jason G.</b></div>
+        <div style="text-align:right"><small>Points</small><b id="visits">3</b></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="liveCards"></div>
+      <div class="section-title" id="challengesHead" style="display:none">More challenges</div>
+      <div id="challenges" style="display:none"></div>
+    </div>
+
+    <div class="tabbar">
+      <div><i>⌂</i>Home</div>
+      <div><i>☕</i>Order</div>
+      <div class="on"><i>🏆</i>Challenges</div>
+      <div><i>🎁</i>Rewards</div>
+      <div><i>☰</i>More</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Circle K demo – challenges come live from Journey Optimizer Loyalty.
+   1) Challenge list:   App Builder loyalty-status  -> GET ajo/loyalty/challenges/state?pid=<loyaltyId>   (all active challenges, each with its challenge_id)
+   2) Join:             App Builder loyalty-join    -> POST ajo/loyalty/challenges/signup/<challenge_id>
+   3) Marketing card:   Web SDK content cards (surface below), matched to a challenge by name                                   */
+const ORG_ID = "120A56765E16E7BE0A495FEB@AdobeOrg";
+const DATASTREAM_ID = "7f3ae4d7-ae84-41e3-ab88-ecca57a218a2";   // jusjohns - 2026 Workspace (web), AJO enabled
+const SURFACE = "web://justintxadobe.github.io/timhortons-demo/#challenges";
+const ACTIONS = "https://280485-circlekloyalty-stage.adobeioruntime.net/api/v1/web/circlek";
+const BASE_VISITS = 2;
+const qs = new URLSearchParams(location.search);
+const LOYALTY_ID = (qs.get("lid") || "TH-LOY-395D92B198").toUpperCase();
+const MEMBERS = {
+  "TH-LOY-395D92B198": { name: "Emma T.", full: "Emma Tremblay", crmid: "200001" },
+  "TH-LOY-CCF62E090B": { name: "Liam R.", full: "Liam Roy", crmid: "200002" },
+  "TH-LOY-63E76E8F10": { name: "Olivia G.", full: "Olivia Gagnon", crmid: "200003" },
+  "TH-LOY-7D37B2FAC7": { name: "Noah M.", full: "Noah MacDonald", crmid: "200004" },
+  "TH-LOY-83BE4EF7B2": { name: "Ava W.", full: "Ava Wilson", crmid: "200005" },
+  "TH-LOY-286498A9A6": { name: "Ethan M.", full: "Ethan Martin", crmid: "200006" },
+  "TH-LOY-D4002833A2": { name: "Chloe B.", full: "Chloe Bouchard", crmid: "200007" },
+  "TH-LOY-EA1C319050": { name: "Lucas C.", full: "Lucas Campbell", crmid: "200008" },
+  "TH-LOY-F0CFE88095": { name: "Sophie L.", full: "Sophie Leblanc", crmid: "200009" },
+  "TH-LOY-16B3A177CE": { name: "Owen F.", full: "Owen Fraser", crmid: "200010" }
+};
+const MEMBER = MEMBERS[LOYALTY_ID] || {};
+
+/* Fresh browser identity per member: Web SDK stores the browser ID (ECID) in first-party cookies.
+   If the member changed since last load, wipe those cookies so this member gets a new ECID and
+   profiles don't get stitched together through a shared browser ID. */
+function clearAdobeIdentity(){
+  document.cookie.split(";").map(c => c.split("=")[0].trim())
+    .filter(n => /^(kndctr_|AMCV_|AMCVS_|mbox|at_check|s_ecid|demdex)/.test(n))
+    .forEach(n => { [location.hostname, "." + location.hostname, ""].forEach(d => {
+      document.cookie = n + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" + (d ? "; domain=" + d : ""); }); });
+  Object.keys(localStorage).filter(k => /^(com\.adobe|alloy|kndctr)/i.test(k)).forEach(k => localStorage.removeItem(k));
+}
+if (localStorage.getItem("ck-active-lid") !== LOYALTY_ID) { clearAdobeIdentity(); localStorage.setItem("ck-active-lid", LOYALTY_ID); }
+const CRMID = qs.get("crmid") || MEMBER.crmid || "";
+
+let CHALLENGES = [];   // from Journey Optimizer
+let PROPS = [];        // content-card propositions from the Web SDK
+
+/* ---------- helpers ---------- */
+const esc = v => String(v ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cidOf = c => c.challenge_id || c.challengeId || c.id || c._id;
+const jkey = cid => `joined:${LOYALTY_ID}:${cid}`;
+const isJoined = c => c.optedIn === true || localStorage.getItem(jkey(cidOf(c))) === "1";
+const DONE = ["complete","completed","sent","rewarded","fulfilled"];
+function tasksOf(c){
+  return (c.tasks || []).map(t => {
+    const v = t.variables || {}; const goal = v.qtyMin || (v.spendMin ? "$" + v.spendMin : 1);
+    return { name: t.taskName || t.name || "Task", desc: t.desc || "", goal, done: DONE.includes(String(t.taskState||"").toLowerCase()) };
+  });
+}
+function rewardOf(c){ const r = c.reward || {}; return { value: Number(r.rewardValue || r.value || 0), unit: (r.rewardDefinition && r.rewardDefinition.denomination) || r.denomination || "" }; }
+function needed(c){ const ts = tasksOf(c); return Math.min(c.tasksToComplete || ts.length, ts.length) || ts.length; }
+function isComplete(c){ return !!c.completionDate || tasksOf(c).filter(t => t.done).length >= needed(c); }
+function rewardStatus(c){
+  if (!isComplete(c)) return { label: "pending", cls: "wait" };
+  const st = String(c.state || "").toLowerCase();
+  if (st === "failed") return { label: "delivery failed", cls: "bad" };
+  if (["completed","rewarded","sent","fulfilled","complete"].includes(st)) return { label: "issued", cls: "ok" };
+  return { label: st ? "processing (" + st + ")" : "processing", cls: "wait" };
+}
+const endLabel = c => c.endDate ? new Date(c.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+function daysLeft(c){ return c.endDate ? Math.max(0, Math.ceil((new Date(c.endDate) - new Date()) / 864e5)) : ""; }
+
+function toast(msg){
+  const t = document.getElementById("toast");
+  document.getElementById("toastText").textContent = msg;
+  t.classList.add("show");
+  clearTimeout(window._tt); window._tt = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+
+/* ---------- Journey Optimizer: challenge list + join ---------- */
+function refreshStatus(){
+  return fetch(ACTIONS + "/loyalty-status?lid=" + encodeURIComponent(LOYALTY_ID)).then(r => r.json()).then(j => {
+    CHALLENGES = j.challenges || (j.challenge ? [j.challenge] : []);
+    CHALLENGES.forEach(c => { if (c.optedIn === true) localStorage.setItem(jkey(cidOf(c)), "1"); });
+    console.log("Challenges from Journey Optimizer:", j);
+  });
+}
+function joinChallenge(cid, btn, label){
+  btn.disabled = true; btn.textContent = "Joining…";
+  return fetch(ACTIONS + "/loyalty-join", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lid: LOYALTY_ID, cid }) })
+    .then(r => r.json()).then(j => {
+      if (!j.joined) throw new Error(JSON.stringify(j));
+      localStorage.setItem(jkey(cid), "1");
+      const c = CHALLENGES.find(x => cidOf(x) === cid);
+      toast(`You're in! ${c ? c.name : "Challenge"} joined.`);
+      renderAll(); refreshStatus().then(renderAll).catch(()=>{});
+    }).catch(e => { console.warn("Join failed:", e); btn.disabled = false; btn.textContent = label; toast("Couldn't join right now. Try again."); });
+}
+
+function withdrawChallenge(cid, btn){
+  const c = CHALLENGES.find(x => cidOf(x) === cid);
+  if (!confirm(`Withdraw from ${c ? c.name : "this challenge"}? Your progress may be lost.`)) return;
+  btn.disabled = true; btn.textContent = "Withdrawing…";
+  return fetch(ACTIONS + "/loyalty-withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lid: LOYALTY_ID, cid }) })
+    .then(r => r.json()).then(j => {
+      if (!j.withdrawn) throw new Error(JSON.stringify(j));
+      localStorage.removeItem(jkey(cid));
+      if (c) { c.optedIn = false; c.signedUp = false; }
+      toast(`You've left ${c ? c.name : "the challenge"}.`);
+      renderAll(); refreshStatus().then(renderAll).catch(()=>{});
+    }).catch(e => { console.warn("Withdraw failed:", e); btn.disabled = false; btn.textContent = "Withdraw"; toast("Couldn't withdraw right now. Try again."); });
+}
+
+/* ---------- rendering ---------- */
+function stepper(n, need){
+  if (need < 2) return "";
+  let h = '<div class="stp">';
+  for (let i = 1; i <= need; i++) h += (i > 1 ? `<span class="ln${i <= n ? ' on' : ''}"></span>` : '') + `<span class="dot${i <= n ? ' on' : ''}">${i <= n ? '✓' : i}</span>`;
+  return h + `</div><div class="stpl">${n >= need ? 'All steps done!' : (need - n) + ' step' + (need - n > 1 ? 's' : '') + ' to go!'}</div>`;
+}
+function progressHtml(c){
+  const ts = tasksOf(c); const n = ts.filter(t => t.done).length; const need = needed(c); const r = rewardOf(c); const rs = rewardStatus(c);
+  return `<div class="pg">${stepper(n, need)}${ts.map(t => `<div class="row"><span>${esc(t.name)}</span><span>${t.done ? "Done ✓" : esc(t.goal) + " to go"}</span></div>
+    <div class="bar"><i style="width:${t.done ? 100 : 0}%"></i></div>`).join("")}
+    <div class="sum"><span>${isComplete(c) ? (rs.cls === "bad" ? "Completed. Reward delivery failed." : "Completed! Reward unlocked.")
+      : `${Math.max(0, need - n)} of ${need} tasks to go · ends ${endLabel(c)}`}</span><b>+${r.value} ${esc(r.unit)}</b></div></div>`;
+}
+function joinOrProgress(c, label){
+  return isJoined(c)
+    ? progressHtml(c) + `<button class="wd" data-withdraw="${esc(cidOf(c))}">Withdraw</button>`
+    : `<button data-join="${esc(cidOf(c))}" data-label="${esc(label || "Join challenge")}">${esc(label || "Join challenge")}</button>`;
+}
+function wire(el){
+  el.querySelectorAll("button[data-join]").forEach(b => b.onclick = () => joinChallenge(b.dataset.join, b, b.dataset.label));
+  el.querySelectorAll("button[data-withdraw]").forEach(b => b.onclick = () => withdrawChallenge(b.dataset.withdraw, b));
+}
+
+function cardContent(item){
+  const d = item.data || {}; const c = d.content || d;
+  const txt = v => (v && typeof v === "object") ? (v.content || "") : (v || "");
+  return { title: txt(c.title), body: txt(c.body), img: c.imageUrl || (c.image && c.image.url) || "",
+           buttons: (c.buttons || []).map(b => ({ text: txt(b.text), url: b.actionUrl || "", id: b.interactId || b.id || "" })) };
+}
+function matchChallenge(card){
+  const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  const t = norm(card.title + " " + card.body);
+  // 1) exact name or description found in the card
+  const exact = CHALLENGES.filter(c => (c.name && t.includes(norm(c.name))) || (c.desc && t.includes(norm(c.desc))))
+    .sort((a,b) => b.name.length - a.name.length)[0];
+  if (exact) return exact;
+  // 2) best word overlap with the challenge name + description (handles renamed challenges)
+  const words = new Set(t.split(" ").filter(w => w.length > 2));
+  let best = null, bestScore = 0;
+  CHALLENGES.forEach(c => {
+    const score = norm(c.name + " " + (c.desc || "")).split(" ").filter(w => w.length > 2 && words.has(w)).length;
+    if (score > bestScore) { best = c; bestScore = score; }
+  });
+  return bestScore >= 3 ? best : null;
+}
+
+function renderAll(){
+  const live = document.getElementById("liveCards"); live.innerHTML = "";
+  const shown = new Set();
+  // 1) Marketing content cards from Journey Optimizer, each tied to its challenge
+  PROPS.forEach(p => (p.items || []).forEach(item => {
+    const card = cardContent(item); if (!card.title && !card.body && !card.img) return;
+    const ch = matchChallenge(card);
+    // Only show cards tied to a challenge that is live right now, one card per challenge
+    if (!ch || shown.has(cidOf(ch))) return;
+    shown.add(cidOf(ch));
+    const joinBtn = card.buttons.find(b => /join/i.test(b.text));
+    const el = document.createElement("div"); el.className = "lc";
+    el.innerHTML = `${card.img ? `<img src="${esc(card.img)}" alt="">` : ""}<div class="b"><div class="live">● LIVE FROM JOURNEY OPTIMIZER</div>
+      <h3>${esc(card.title)}</h3><p>${esc(card.body)}</p>${ch ? joinOrProgress(ch, joinBtn && joinBtn.text) : ""}</div>`;
+    el.querySelectorAll("button[data-join]").forEach(b => b.addEventListener("click", () => {
+      alloy("sendEvent", { xdm: { eventType: "decisioning.propositionInteract", identityMap: identity(),
+        _experience: { decisioning: { propositions: [{ id: p.id, scope: p.scope, scopeDetails: p.scopeDetails }], propositionEventType: { interact: 1 },
+          propositionAction: { id: (joinBtn && joinBtn.id) || "join", label: b.dataset.label } } } } });
+    }));
+    wire(el); live.appendChild(el);
+  }));
+  // 2) Every other active challenge for this member, straight from the challenge list
+  const rest = CHALLENGES.filter(c => !shown.has(cidOf(c)));
+  const list = document.getElementById("challenges"), head = document.getElementById("challengesHead");
+  list.innerHTML = ""; list.style.display = head.style.display = rest.length ? "" : "none";
+  rest.forEach(c => {
+    const el = document.createElement("div"); el.className = "lc";
+    el.innerHTML = `<div class="b"><div class="live">● ${isComplete(c) ? "COMPLETED" : "ACTIVE · " + daysLeft(c) + " DAYS LEFT"}</div>
+      <h3>${esc(c.name)}</h3><p>${esc(c.desc || "")}</p>${joinOrProgress(c)}</div>`;
+    wire(el); list.appendChild(el);
+  });
+  if (!PROPS.length && !CHALLENGES.length) live.innerHTML = `<p style="color:#888;padding:12px">No active challenges for this member.</p>`;
+  // Visits: base + rewards from completed challenges whose reward wasn't marked failed
+  const bonus = CHALLENGES.filter(c => isJoined(c) && isComplete(c) && rewardStatus(c).cls !== "bad").reduce((s, c) => s + rewardOf(c).value, 0);
+  document.getElementById("visits").textContent = BASE_VISITS + bonus;
+  cpStatus();
+}
+
+function resetDemo(){
+  Object.keys(localStorage).filter(k => k.startsWith("joined:" + LOYALTY_ID)).forEach(k => localStorage.removeItem(k));
+  renderAll(); toast("Demo reset for this browser (Journey Optimizer sign-ups are kept).");
+}
+
+/* ---------- member picker ---------- */
+document.getElementById("memberName").textContent = qs.get("name") || MEMBER.name || LOYALTY_ID;
+(function(){
+  const sel = document.getElementById("memberPick"); if (!sel) return;
+  sel.innerHTML = Object.entries(MEMBERS).map(([lid, m]) => `<option value="${lid}" ${lid === LOYALTY_ID ? "selected" : ""}>${m.full} · ${lid}</option>`).join("")
+    + (MEMBERS[LOYALTY_ID] ? "" : `<option selected>${LOYALTY_ID}</option>`);
+  sel.onchange = () => { clearAdobeIdentity(); localStorage.setItem("ck-active-lid", sel.value); location.search = "?lid=" + encodeURIComponent(sel.value); };
+})();
+setInterval(()=>{ const d=new Date(); document.getElementById("clock").textContent=d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}).replace(/ [AP]M/,""); },1000);
+
+/* ---------- Web SDK: content cards ---------- */
+!function(n,o){o.forEach(function(o){n[o]||((n.__alloyNS=n.__alloyNS||[]).push(o),n[o]=function(){var u=arguments;return new Promise(function(i,l){n[o].q.push([i,l,u])})},n[o].q=[])})}(window,["alloy"]);
+const sdk=document.createElement("script"); sdk.async=true; sdk.src="https://cdn1.adoberesources.net/alloy/2.24.0/alloy.min.js"; document.head.appendChild(sdk);
+alloy("configure",{ datastreamId: DATASTREAM_ID, orgId: ORG_ID, defaultConsent: "in", thirdPartyCookiesEnabled: false, debugEnabled: qs.has("debug") });
+const identity = () => ({ loyaltyId: [{ id: LOYALTY_ID, authenticatedState: "authenticated", primary: true }] });
+function loadCards(){
+  return alloy("sendEvent",{
+    xdm:{ eventType:"web.webpagedetails.pageViews", identityMap: identity(), web:{webPageDetails:{name:"Tims Challenges", URL: location.href}} },
+    personalization:{ surfaces:[SURFACE] }
+  }).then(r => {
+    PROPS = (r.propositions||[]).filter(p => (p.scope||"").indexOf("challenges")>=0 || (p.items||[]).some(i => /content-card/.test(i.schema||"")));
+    renderAll();
+    if (PROPS.length) alloy("sendEvent",{ xdm:{ eventType:"decisioning.propositionDisplay", identityMap: identity(),
+      _experience:{decisioning:{ propositions: PROPS.map(p=>({id:p.id,scope:p.scope,scopeDetails:p.scopeDetails})), propositionEventType:{display:1} }} }});
+  }).catch(e => { console.warn("Web SDK:", e); renderAll(); });
+}
+
+/* ---------- Demo control panel (purchases go through App Builder) ---------- */
+function cpLog(msg){ const el=document.getElementById("cpLog"); if(!el) return; const t=new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit",second:"2-digit"}); el.innerHTML = `<div>${t} · ${esc(msg)}</div>` + el.innerHTML; }
+function cpStatus(){
+  const el = document.getElementById("cpStatus"); if (!el) return;
+  const mine = CHALLENGES.filter(isJoined);
+  if (!mine.length) { el.innerHTML = `<div><span>Member</span><span class="wait">${CHALLENGES.length ? "not joined to any challenge" : "loading challenges…"}</span></div>`; return; }
+  el.innerHTML = mine.map(c => { const rs = rewardStatus(c); const r = rewardOf(c);
+    return `<div style="margin-top:6px"><span><b>${esc(c.name)}</b></span><span></span></div>`
+      + tasksOf(c).map(t => `<div><span>&nbsp;&nbsp;${esc(t.name)}</span><span class="${t.done?'ok':'wait'}">${t.done?'complete':'incomplete'}</span></div>`).join("")
+      + `<div><span>&nbsp;&nbsp;Reward (+${r.value} ${esc(r.unit)})</span><span class="${rs.cls}">${rs.label}</span></div>`; }).join("");
+}
+let HOUR = "";
+function setHour(b){ HOUR = b.dataset.h; document.querySelectorAll('#hourPick button').forEach(x => x.classList.toggle('on', x === b)); }
+function buy(items, label){
+  if (!CHALLENGES.some(isJoined)) { toast("Join a challenge first."); cpLog("Join a challenge first"); return; }
+  const btns=[...document.querySelectorAll(".cp .btns:not(#hourPick) button")]; btns.forEach(b=>b.disabled=true);
+  cpLog(`Sending: ${label}…`);
+  fetch(ACTIONS+"/loyalty-purchase",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ lid: LOYALTY_ID, crmid: CRMID || undefined, items, hour: HOUR === '' ? undefined : Number(HOUR) }) })
+    .then(r => r.json()).then(j => {
+      if (!j.sent) throw new Error(JSON.stringify(j));
+      const fast = j.direct && j.direct.applied;
+      cpLog(fast ? `Purchase sent (${j.orderId}) and applied directly to challenges.` : `Purchase sent (${j.orderId}). Waiting for Journey Optimizer…`);
+      if (j.direct && j.direct.enabled && !j.direct.applied) console.warn("Direct-to-challenge call didn't apply:", j.direct);
+      toast(`Purchase: ${label}`);
+      // Poll: every 1s when applied directly (progress is already saved), else every 5s; up to 4 minutes
+      const before = JSON.stringify(CHALLENGES.map(c => [(c.tasks||[]).map(t => t.taskState), c.state]));
+      const t0 = Date.now(); clearInterval(window._fast);
+      window._fast = setInterval(() => {
+        refreshStatus().then(() => {
+          renderAll();
+          const now = JSON.stringify(CHALLENGES.map(c => [(c.tasks||[]).map(t => t.taskState), c.state]));
+          const secs = Math.round((Date.now()-t0)/1000);
+          if (now !== before) { clearInterval(window._fast); cpLog(`Progress updated after ${secs}s.`); toast("Challenge progress updated"); }
+          else if (secs >= 240) { clearInterval(window._fast); cpLog("No update after 4 minutes."); }
+          else cpLog(`Waiting for Journey Optimizer… ${secs}s`);
+        }).catch(()=>{});
+      }, fast ? 1000 : 5000);
+    }).catch(e => { console.warn("Purchase failed:", e); cpLog("Purchase failed. See console."); toast("Purchase didn't go through."); })
+    .finally(() => btns.forEach(b=>b.disabled=false));
+}
+
+/* ---------- start ---------- */
+refreshStatus().catch(e => console.warn("Challenge list failed:", e)).finally(loadCards);
+setInterval(() => refreshStatus().then(renderAll).catch(()=>{}), 30000);
+</script>
+</body>
+</html>
