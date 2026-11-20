@@ -97,7 +97,7 @@
   <p class="hint">Demo mode: use the control panel to simulate purchases. Rewards (bonus points or a free coffee) are sent to the Tims rewards system the moment a challenge is completed.</p>
   <div class="demo-actions">
     <button onclick="resetDemo()" class="da-btn da-reset">↺ Reset</button>
-    <a href="https://justintxadobe.github.io/circlek-demo/rewards.html" target="_blank" class="da-btn da-link">Rewards dashboard ↗</a>
+    <a id="rewardsLink" href="https://justintxadobe.github.io/circlek-demo/rewards.html" target="_blank" class="da-btn da-link">Rewards dashboard ↗</a>
   </div>
   <style>
     .demo-actions{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;width:100%;max-width:440px;margin:0 0 18px}
@@ -327,7 +327,20 @@ function repeatProgressHtml(c){
     <div class="sum"><span>${n >= goal ? (rs.cls === "bad" ? "Completed. Reward delivery failed." : "Completed! Reward unlocked.")
       : `${goal - n} to go · ends ${endLabel(c)}`}</span><b>+${ms.reduce((s, x) => s + (Number(x.rewardValue) || 0), 0) || r.value} ${esc(r.unit)}</b></div></div>`;
 }
+/* Quantity challenges (one task, "buy N items" across purchases): use Journey Optimizer's running item count */
+function qtyProgressHtml(c){
+  const t = c.tasks[0], v = t.variables || {}, goal = Number(v.qtyMin) || 0;
+  const done = DONE.includes(String(t.taskState || "").toLowerCase()) || !!c.completionDate;
+  const n = done ? goal : Math.min(Number((t.accumulators || {}).qty) || 0, goal);
+  const r = rewardOf(c), rs = rewardStatus(c);
+  const unit = /coffee|item/i.test(r.unit || "") ? "free coffee" : (r.unit || "");
+  return `<div class="pg">${stepper(n, goal)}<div class="row"><span>${esc(t.taskName || "Purchases")}</span><span>${n} of ${goal}</span></div>
+    <div class="bar"><i style="width:${goal ? Math.round(n / goal * 100) : 0}%"></i></div>
+    <div class="sum"><span>${n >= goal ? (rs.cls === "bad" ? "Completed. Reward delivery failed." : "Completed! Reward unlocked.")
+      : `${goal - n} to go · ends ${endLabel(c)}`}</span><b>+${esc(r.value)} ${esc(unit)}</b></div></div>`;
+}
 function progressHtml(c){
+  if ((c.tasks || []).length === 1 && Number((c.tasks[0].variables || {}).qtyMin) > 1 && repeatGoal(c) <= 1) return qtyProgressHtml(c);
   if (repeatGoal(c) > 1 && (c.tasks || []).length === 1) return repeatProgressHtml(c);
   const ts = tasksOf(c); const n = ts.filter(t => t.done).length; const need = needed(c); const r = rewardOf(c); const rs = rewardStatus(c);
   return `<div class="pg">${stepper(n, need)}${ts.map(t => `<div class="row"><span>${esc(t.name)}</span><span>${t.done ? "Done ✓" : esc(t.goal) + " to go"}</span></div>
@@ -406,6 +419,7 @@ function renderAll(){
 }
 
 async function loadBalance(){
+  const rl = document.getElementById("rewardsLink"); if (rl) rl.href = "https://justintxadobe.github.io/circlek-demo/rewards.html?lid=" + encodeURIComponent(LOYALTY_ID);
   const el = document.getElementById("visits");
   try {
     const r = await fetch(`${ACTIONS}/loyalty-rewards-feed?lid=${encodeURIComponent(LOYALTY_ID)}`);
