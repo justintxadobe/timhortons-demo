@@ -156,7 +156,7 @@
       </div>
       <div class="member">
         <div><small>Member</small><b id="memberName">Jason G.</b></div>
-        <div style="text-align:right"><small>Points</small><b id="visits">3</b></div>
+        <div style="text-align:right"><small>Points</small><b id="visits">–</b></div>
       </div>
     </div>
 
@@ -400,15 +400,26 @@ function renderAll(){
     wire(el); list.appendChild(el);
   });
   if (!PROPS.length && !CHALLENGES.length) live.innerHTML = `<p style="color:#888;padding:12px">No active challenges for this member.</p>`;
-  // Visits: base + rewards from completed challenges whose reward wasn't marked failed
-  const bonus = CHALLENGES.filter(c => isJoined(c) && isComplete(c) && rewardStatus(c).cls !== "bad").reduce((s, c) => s + rewardOf(c).value, 0);
-  document.getElementById("visits").textContent = BASE_VISITS + bonus;
+  // Points: real balance from the Tims loyalty ledger (rewards provider). Everyone starts at 100.
+  loadBalance();
   cpStatus();
+}
+
+async function loadBalance(){
+  const el = document.getElementById("visits");
+  try {
+    const r = await fetch(`${ACTIONS}/loyalty-rewards-feed?lid=${encodeURIComponent(LOYALTY_ID)}`);
+    const j = await r.json(); const l = j.ledger || {};
+    el.textContent = (l.points ?? "–").toLocaleString();
+    el.title = l.freeCoffee ? `${l.freeCoffee} free coffee${l.freeCoffee > 1 ? "s" : ""} available` : "";
+    console.log("Balance from Tims loyalty ledger:", l);
+  } catch (e) { el.textContent = "–"; console.log("Balance lookup failed:", e.message); }
 }
 
 function resetDemo(){
   Object.keys(localStorage).filter(k => k.startsWith("joined:" + LOYALTY_ID)).forEach(k => localStorage.removeItem(k));
-  renderAll(); toast("Demo reset for this browser (Journey Optimizer sign-ups are kept).");
+  fetch(`${ACTIONS}/loyalty-rewards-feed?lid=${encodeURIComponent(LOYALTY_ID)}&reset=true`).catch(() => {});
+  renderAll(); toast("Demo reset: balance back to 100 points (Journey Optimizer sign-ups are kept).");
 }
 
 /* ---------- member picker ---------- */
