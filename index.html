@@ -307,15 +307,25 @@ function repeatCount(c){
   if (c.completionDate) n = goal;
   return Math.min(n, goal);
 }
+/* Milestone rewards come from Journey Optimizer (the backend adds them from the challenge definition) */
+function msValue(c, x){
+  const v = x.rewardValue || (x.reward && x.reward.rewardValue) || (x.reward && x.reward.value);
+  return (v !== undefined && v !== null && v !== "") ? (Number(v) || v) : "";
+}
+function msUnit(c, r){
+  if (r.unit) return r.unit;
+  return /buy 3|free/i.test(c.name || "") ? "free coffee" : "points";
+}
 function repeatProgressHtml(c){
-  const goal = repeatGoal(c), n = repeatCount(c), r = rewardOf(c), rs = rewardStatus(c);
-  const ms = (c.milestones.completions || []).slice().sort((a, b) => a.count - b.count);
+  const goal = repeatGoal(c), n = repeatCount(c), rs = rewardStatus(c);
+  const r0 = rewardOf(c); const r = { value: r0.value, unit: msUnit(c, r0) };
+  const ms = (c.milestones.completions || []).map(x => Object.assign({}, x, { rewardValue: msValue(c, x) })).sort((a, b) => a.count - b.count);
   const t = (c.tasks || [])[0] || {}; const name = t.taskName || "Visits";
-  const marks = ms.map(x => `<div class="row"><span>Visit ${x.count}: +${esc(x.rewardValue)} ${esc(r.unit)}</span><span>${n >= x.count ? "Unlocked ✓" : (x.count - n) + " to go"}</span></div>`).join("");
+  const marks = ms.map(x => `<div class="row"><span>Visit ${x.count}${x.rewardValue !== "" ? `: +${esc(x.rewardValue)} ${esc(r.unit)}` : ""}</span><span>${n >= x.count ? "Unlocked ✓" : (x.count - n) + " to go"}</span></div>`).join("");
   return `<div class="pg">${stepper(n, goal)}<div class="row"><span>${esc(name)}</span><span>${n} of ${goal}</span></div>
     <div class="bar"><i style="width:${goal ? Math.round(n / goal * 100) : 0}%"></i></div>${ms.length > 1 ? marks : ""}
     <div class="sum"><span>${n >= goal ? (rs.cls === "bad" ? "Completed. Reward delivery failed." : "Completed! Reward unlocked.")
-      : `${goal - n} to go · ends ${endLabel(c)}`}</span><b>+${ms.length > 1 ? ms.reduce((s, x) => s + (Number(x.rewardValue) || 0), 0) : r.value} ${esc(r.unit)}</b></div></div>`;
+      : `${goal - n} to go · ends ${endLabel(c)}`}</span><b>+${ms.reduce((s, x) => s + (Number(x.rewardValue) || 0), 0) || r.value} ${esc(r.unit)}</b></div></div>`;
 }
 function progressHtml(c){
   if (repeatGoal(c) > 1 && (c.tasks || []).length === 1) return repeatProgressHtml(c);
