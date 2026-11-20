@@ -291,7 +291,34 @@ function stepper(n, need){
   for (let i = 1; i <= need; i++) h += (i > 1 ? `<span class="ln${i <= n ? ' on' : ''}"></span>` : '') + `<span class="dot${i <= n ? ' on' : ''}">${i <= n ? '✓' : i}</span>`;
   return h + `</div><div class="stpl">${n >= need ? 'All steps done!' : (need - n) + ' step' + (need - n > 1 ? 's' : '') + ' to go!'}</div>`;
 }
+/* Repeat challenges (one task done N times, with milestones): count each visit, not just the finished task */
+function repeatGoal(c){
+  const m = (c.milestones && c.milestones.completions) || [];
+  return m.reduce((g, x) => Math.max(g, Number(x.count) || 0), 0);
+}
+function repeatCount(c){
+  const goal = repeatGoal(c); let n = 0;
+  (c.tasks || []).forEach(t => {
+    const s = t.schedule || {};
+    n = Math.max(n, Number(s.currentStreak) || 0, Number(s.currentVisits) || 0, Number(s.repeatCount) || 0, (t.taskCompletions || []).length);
+    if (DONE.includes(String(t.taskState || "").toLowerCase())) n = Math.max(n, goal);
+  });
+  ((c.milestones && c.milestones.completions) || []).forEach(x => { if (String(x.state || "").toLowerCase() !== "incomplete") n = Math.max(n, Number(x.count) || 0); });
+  if (c.completionDate) n = goal;
+  return Math.min(n, goal);
+}
+function repeatProgressHtml(c){
+  const goal = repeatGoal(c), n = repeatCount(c), r = rewardOf(c), rs = rewardStatus(c);
+  const ms = (c.milestones.completions || []).slice().sort((a, b) => a.count - b.count);
+  const t = (c.tasks || [])[0] || {}; const name = t.taskName || "Visits";
+  const marks = ms.map(x => `<div class="row"><span>Visit ${x.count}: +${esc(x.rewardValue)} ${esc(r.unit)}</span><span>${n >= x.count ? "Unlocked ✓" : (x.count - n) + " to go"}</span></div>`).join("");
+  return `<div class="pg">${stepper(n, goal)}<div class="row"><span>${esc(name)}</span><span>${n} of ${goal}</span></div>
+    <div class="bar"><i style="width:${goal ? Math.round(n / goal * 100) : 0}%"></i></div>${ms.length > 1 ? marks : ""}
+    <div class="sum"><span>${n >= goal ? (rs.cls === "bad" ? "Completed. Reward delivery failed." : "Completed! Reward unlocked.")
+      : `${goal - n} to go · ends ${endLabel(c)}`}</span><b>+${ms.length > 1 ? ms.reduce((s, x) => s + (Number(x.rewardValue) || 0), 0) : r.value} ${esc(r.unit)}</b></div></div>`;
+}
 function progressHtml(c){
+  if (repeatGoal(c) > 1 && (c.tasks || []).length === 1) return repeatProgressHtml(c);
   const ts = tasksOf(c); const n = ts.filter(t => t.done).length; const need = needed(c); const r = rewardOf(c); const rs = rewardStatus(c);
   return `<div class="pg">${stepper(n, need)}${ts.map(t => `<div class="row"><span>${esc(t.name)}</span><span>${t.done ? "Done ✓" : esc(t.goal) + " to go"}</span></div>
     <div class="bar"><i style="width:${t.done ? 100 : 0}%"></i></div>`).join("")}
